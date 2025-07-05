@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 public class ShippingService {
-    private final ArrayList<Shippable> shippableProducts;
+    private final ArrayList<Product> shippableProducts;
     private double totalWeight;
 
     public ShippingService() {
@@ -9,7 +9,7 @@ public class ShippingService {
         this.totalWeight = 0.0;
     }
 
-    public void addShippableProduct(Shippable product) {
+    public void addShippableProduct(Product product) {
         shippableProducts.add(product);
         totalWeight += product.getWeight();
     }

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Cart {
     private ArrayList<CartItem> items;
     private Inventory inventory;
-    private ArrayList<Shippable> shippableProducts;
+    private ArrayList<Product> shippableProducts;
 
     public Cart(Inventory inventory) {
         this.items = new ArrayList<>();
@@ -37,8 +37,8 @@ public class Cart {
         System.out.println("✓ Added to cart: " + requiredQuantity + "x " + productName);
 
         // Add to shippable products if applicable
-        if(inventory.getProduct(productName) instanceof Shippable) {
-            shippableProducts.add((Shippable) inventory.getProduct(productName));
+        if(inventory.getProduct(productName).getShippableBehaviour().isShippable()) {
+            shippableProducts.add(inventory.getProduct(productName));
         }
     }
 
@@ -57,7 +57,7 @@ public class Cart {
     public double getSubTotal() {
         double total = 0;
         for (CartItem item : items) {
-            total += item.getSubTotal();
+            total += inventory.getProductSubTotal(item.getProductName()) * item.getQuantity();
         }
         return total;
     }
@@ -73,7 +73,7 @@ public class Cart {
     public void checkForExpiredProducts() throws ProductExpiredException {
         for (CartItem item : items) {
             if (inventory.isExpiredProduct(item.getProductName())) {
-                throw new ProductExpiredException("❌ Checkout failed: Cannot purchase expired product ", item.getProductName(), ((Expirable) inventory.getProduct(item.getProductName())).getExpiryDate());
+                throw new ProductExpiredException("❌ Checkout failed: Cannot purchase expired product ", item.getProductName(), inventory.getProduct(item.getProductName()).getExpiryDate());
             }
         }
     }
@@ -88,7 +88,7 @@ public class Cart {
         ShippingService shippingService = new ShippingService();
         double totalWeight = 0;
 
-        for (Shippable product : shippableProducts) {
+        for (Product product : shippableProducts) {
             shippingService.addShippableProduct(product);
             // Find quantity in cart
             int quantity = 0;
@@ -113,13 +113,13 @@ public class Cart {
         System.out.println("** Checkout receipt **");
 
         for (CartItem item : items) {
-            System.out.println(item.getQuantity() + "x " + item.getProductName() + " " + (int)item.getSubTotal());
+            System.out.println(item.getQuantity() + "x " + item.getProductName() + " " + item.getSubTotal());
         }
 
         System.out.println("----------------------");
-        System.out.println("Subtotal " + (int)getSubTotal());
-        System.out.println("Shipping " + (int)getShippingFees());
-        System.out.println("Amount " + (int)(getSubTotal() + getShippingFees()));
+        System.out.println("Subtotal " + getSubTotal());
+        System.out.println("Shipping " + getShippingFees());
+        System.out.println("Amount " + (getSubTotal() + getShippingFees()));
     }
 
     public int getCartSize() {

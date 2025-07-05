@@ -1,42 +1,82 @@
+import Exceptions.ProductExpiredException;
 import Exceptions.ProductOutOfStockException;
 
-public class Product implements ProductComponent {
+import java.time.LocalDateTime;
+
+public class Product {
     private String name;
     private double price;
     private int stockQuantity;
+    public Shippable shippableBehaviour;
+    public Expirable expirableBehaviour;
 
-    public Product(String name, double price, int quantity){
+    public Product(String name, double price, int quantity, Shippable shippableBehaviour, Expirable expirableBehaviour) {
         this.name = name;
         this.price = price;
         this.stockQuantity = quantity;
+        this.shippableBehaviour = shippableBehaviour;
+        this.expirableBehaviour = expirableBehaviour;
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public double getPrice() {
-        return price;
-    }
-
-    @Override
-    public int getStockQuantity() {
-        return stockQuantity;
-    }
-
-    @Override
-    public void reduceStock(int requiredQuantity) throws ProductOutOfStockException {
-        if (stockQuantity >= requiredQuantity)
+    public void reduceStock(int requiredQuantity) throws ProductOutOfStockException, ProductExpiredException {
+        if (isExpirable() && isExpired())
+            throw new ProductExpiredException("Cannot add expired product to cart: ", getName(), getExpiryDate());
+        else if (stockQuantity >= requiredQuantity)
             stockQuantity -= requiredQuantity;
         else
             throw new ProductOutOfStockException(this.name, this.stockQuantity, requiredQuantity);
     }
 
-    @Override
     public void increaseStock(int quantity) {
         stockQuantity += quantity;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public double getShippingFees(){
+        return shippableBehaviour.getShippingFee();
+    }
+
+    public double getWeight(){
+        return shippableBehaviour.getWeight();
+    }
+
+    public boolean isExpirable() {
+        return expirableBehaviour.isExpirable();
+    }
+
+    public boolean isExpired() {
+        return expirableBehaviour.isExpired();
+    }
+
+    public LocalDateTime getExpiryDate() {
+        return expirableBehaviour.getExpiryDate();
+    }
+
+    public int getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public Shippable getShippableBehaviour() {
+        return shippableBehaviour;
+    }
+
+    public void setShippableBehaviour(Shippable shippableBehaviour) {
+        this.shippableBehaviour = shippableBehaviour;
+    }
+
+    public Expirable getExpirableBehaviour() {
+        return expirableBehaviour;
+    }
+
+    public void setExpirableBehaviour(Expirable expirableBehaviour) {
+        this.expirableBehaviour = expirableBehaviour;
     }
 
     @Override

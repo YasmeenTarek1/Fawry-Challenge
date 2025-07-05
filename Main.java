@@ -11,32 +11,24 @@ public class Main {
             Inventory inventory = new Inventory();
 
             // 1. Basic Products
-            Product basicProduct1 = new Product("Notebook", 5.99, 100);
-            Product basicProduct2 = new Product("Pen", 1.50, 200);
+            Product basicProduct1 = new Product("Notebook", 5.99, 100, new noShippingBehaviour(), new noExpiryBehaviour());
+            Product basicProduct2 = new Product("Pen", 1.50, 200, new noShippingBehaviour(), new noExpiryBehaviour());
 
             // 2. Shippable Products
-            ProductComponent shippableProduct1 = new ShippableDecorator(new Product("Laptop", 999.99, 15), 2.5); // 2.5kg
-            ProductComponent shippableProduct2 = new ShippableDecorator(new Product("Gaming Chair", 299.99, 8), 15.0); // 15kg
+            Product shippableProduct1 = new Product("Laptop", 999.99, 15, new ShippingBehaviour(2.5), new noExpiryBehaviour()); // 2.5kg
+            Product shippableProduct2 = new Product("Gaming Chair", 299.99, 8, new ShippingBehaviour(15.0), new noExpiryBehaviour()); // 15kg
 
             // 3. Expirable Products
-            ProductComponent expirableProduct1 = new ExpirableDecorator(new Product("Organic Milk", 4.50, 50), LocalDateTime.now().plusDays(7)); // expires in 7 days
-            ProductComponent expirableProduct2 = new ExpirableDecorator(new Product("Bread", 2.25, 30), LocalDateTime.now().minusDays(1)); // expired yesterday
+            Product expirableProduct1 = new Product("Organic Milk", 4.50, 50,new noShippingBehaviour(), new ExpiryBehaviour(LocalDateTime.now().plusDays(7))); // expires in 7 days
+            Product expirableProduct2 = new Product("Bread", 2.25, 30,new noShippingBehaviour(), new ExpiryBehaviour(LocalDateTime.now().minusDays(1))); // expired yesterday
 
             // 4. Shippable AND Expirable Products
-            ProductComponent shippableExpirableProduct1 = new ShippableDecorator(
-                    new ExpirableDecorator(
-                            new Product("Fresh Salmon", 25.99, 12),
-                            LocalDateTime.now().plusDays(3)), // expires in 3 days
-                    1.2); // 1.2kg
+            Product shippableExpirableProduct1 = new Product("Fresh Salmon", 25.99, 12, new ShippingBehaviour(1.2), new ExpiryBehaviour(LocalDateTime.now().plusDays(3)));
 
-            ProductComponent shippableExpirableProduct2 = new ShippableDecorator(
-                    new ExpirableDecorator(
-                            new Product("Cheese Wheel", 89.99, 5),
-                            LocalDateTime.now().plusDays(30)), // expires in 30 days
-                    3.5); // 3.5kg
+            Product shippableExpirableProduct2 = new Product("Cheese Wheel", 89.99, 5, new ShippingBehaviour(3.5), new ExpiryBehaviour(LocalDateTime.now().plusDays(30)));
 
             // 5. Low stock product for testing out-of-stock exception
-            Product lowStockProduct = new Product("Limited Edition Item", 199.99, 2);
+            Product lowStockProduct = new Product("Limited Edition Item", 199.99, 2, new noShippingBehaviour(), new noExpiryBehaviour());
 
             // Add all products to inventory
             System.out.println("\n🏪 Setting up inventory...");
@@ -121,10 +113,7 @@ public class Main {
             // CORNER CASE 8: Test ProductExpiredException during checkout
             System.out.println("\n🧪 TEST 8: Product Expired Exception (During checkout)");
 
-            ProductComponent expiringSoon = new ExpirableDecorator(
-                    new Product("Expires Soon", 5.99, 10),
-                    LocalDateTime.now().plusSeconds(5)
-            );
+            Product expiringSoon = new Product("Expires Soon", 5.99, 10, new noShippingBehaviour(), new ExpiryBehaviour(LocalDateTime.now().plusSeconds(5)));
 
             Inventory testInventory = new Inventory();
             testInventory.addProduct(expiringSoon);
