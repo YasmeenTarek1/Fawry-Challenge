@@ -13,6 +13,7 @@ public class Inventory {
 
     public void addProduct(ProductComponent product) {
         products.put(product.getName().toLowerCase(), product);
+        System.out.println("✓ Added to inventory: " + product.getName());
     }
 
     public ProductComponent getProduct(String productName) {
@@ -30,6 +31,7 @@ public class Inventory {
     public void increaseStock(String productName, int quantity){
         ProductComponent product = getProduct(productName);
         product.increaseStock(quantity);
+        System.out.println("✓ Stock restored: " + quantity + "x " + productName);
     }
 
     public double getProductShippingFees(String productName){
@@ -51,8 +53,18 @@ public class Inventory {
     }
 
     public void printInventory() {
-        for (ProductComponent p : products.values()) {
-            System.out.println(p);
+        System.out.println("📦 Current Inventory Status:");
+        System.out.println("═══════════════════════════════════════════════════════════════════════");
+
+        if(products.isEmpty()) {
+            System.out.println("  No products in inventory");
+            return;
         }
+
+        for (ProductComponent p : products.values()) {
+            System.out.println("  " + p);
+        }
+
+        System.out.println("═══════════════════════════════════════════════════════════════════════");
     }
 }

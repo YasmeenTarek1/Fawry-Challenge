@@ -41,6 +41,6 @@ public class Product implements ProductComponent {
 
     @Override
     public String toString() {
-        return name + " (" + stockQuantity + " in stock @ $" + price + ")";
+        return name + " (" + stockQuantity + " in stock @ $" + String.format("%.2f", price) + ")";
     }
 }

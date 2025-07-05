@@ -1,6 +1,7 @@
 import Exceptions.ProductExpiredException;
 import Exceptions.ProductNotFoundException;
 import Exceptions.ProductOutOfStockException;
+import Exceptions.ZeroQuantityException;
 
 import java.util.ArrayList;
 
@@ -15,16 +16,27 @@ public class Cart {
         this.shippableProducts = new ArrayList<>();
     }
 
-    public void addItem(String productName, int requiredQuantity) throws ProductOutOfStockException, ProductNotFoundException, ProductExpiredException {
+    public void addItem(String productName, int requiredQuantity) throws ProductOutOfStockException, ProductNotFoundException, ProductExpiredException, ZeroQuantityException {
+        if (requiredQuantity <= 0) {
+            throw new ZeroQuantityException(productName, requiredQuantity);
+        }
+
         inventory.reduceStock(productName, requiredQuantity);
+
+        // Check if item already exists in cart
         for (CartItem item : items) {
             if (item.getProductName().equalsIgnoreCase(productName)) {
                 item.setQuantity(item.getQuantity() + requiredQuantity);
+                System.out.println("✓ Updated cart: " + requiredQuantity + "x " + productName + " (Total: " + item.getQuantity() + ")");
                 return;
             }
         }
-        items.add(new CartItem(productName, inventory.getProductPrice(productName), requiredQuantity));
 
+        // Add new item to cart
+        items.add(new CartItem(productName, inventory.getProductPrice(productName), requiredQuantity));
+        System.out.println("✓ Added to cart: " + requiredQuantity + "x " + productName);
+
+        // Add to shippable products if applicable
         if(inventory.getProduct(productName) instanceof Shippable) {
             shippableProducts.add((Shippable) inventory.getProduct(productName));
         }
@@ -35,9 +47,11 @@ public class Cart {
             if (item.getProductName().equalsIgnoreCase(productName)) {
                 inventory.increaseStock(item.getProductName(), item.getQuantity());
                 items.remove(item);
+                System.out.println("✓ Removed from cart: " + item.getQuantity() + "x " + productName);
                 return;
             }
         }
+        System.out.println("⚠ Product '" + productName + "' not found in cart");
     }
 
     public double getSubTotal() {
@@ -59,24 +73,53 @@ public class Cart {
     public void checkForExpiredProducts() throws ProductExpiredException {
         for (CartItem item : items) {
             if (inventory.isExpiredProduct(item.getProductName())) {
-                throw new ProductExpiredException("Cannot Checkout: ", item.getProductName(), ((Expirable) inventory.getProduct(item.getProductName())).getExpiryDate());
+                throw new ProductExpiredException("❌ Checkout failed: Cannot purchase expired product ", item.getProductName(), ((Expirable) inventory.getProduct(item.getProductName())).getExpiryDate());
             }
         }
     }
 
     public void sendShippableProductsToShippingService() {
         if (shippableProducts == null || shippableProducts.isEmpty()) {
-            System.out.println("No shippable products in the cart.");
-            return;
+            return; // No shipment notice needed
         }
 
-        System.out.println("Sending shippable products to shipping service:");
+        System.out.println("** Shipment notice **");
 
         ShippingService shippingService = new ShippingService();
+        double totalWeight = 0;
+
         for (Shippable product : shippableProducts) {
             shippingService.addShippableProduct(product);
-            System.out.println("- " + product.getName() + " (Weight: " + product.getWeight() + ")");
+            // Find quantity in cart
+            int quantity = 0;
+            for (CartItem item : items) {
+                if (item.getProductName().equalsIgnoreCase(product.getName())) {
+                    quantity = item.getQuantity();
+                    break;
+                }
+            }
+
+            double productWeight = product.getWeight() * quantity;
+            totalWeight += productWeight;
+
+            System.out.println(quantity + "x " + product.getName() + " " + (int)(productWeight * 1000) + "g");
         }
+
+        System.out.println("Total package weight " + String.format("%.1f", totalWeight) + "kg");
+        System.out.println("\n");
+    }
+
+    public void printCheckoutReceipt() {
+        System.out.println("** Checkout receipt **");
+
+        for (CartItem item : items) {
+            System.out.println(item.getQuantity() + "x " + item.getProductName() + " " + (int)item.getSubTotal());
+        }
+
+        System.out.println("----------------------");
+        System.out.println("Subtotal " + (int)getSubTotal());
+        System.out.println("Shipping " + (int)getShippingFees());
+        System.out.println("Amount " + (int)(getSubTotal() + getShippingFees()));
     }
 
     public int getCartSize() {
@@ -89,12 +132,22 @@ public class Cart {
 
     @Override
     public String toString() {
-        if (items.isEmpty()) return "Cart is empty.";
-        StringBuilder sb = new StringBuilder("Cart Items:\n");
-        for (CartItem item : items) {
-            sb.append("- ").append(item).append("\n");
+        if (items.isEmpty()) {
+            return "🛒 Cart is empty";
         }
-        sb.append("SubTotal: ").append(getSubTotal());
+
+        StringBuilder sb = new StringBuilder("🛒 Cart Contents:\n");
+        sb.append("═══════════════════════════════════════\n");
+
+        for (CartItem item : items) {
+            sb.append("  ").append(item).append("\n");
+        }
+
+        sb.append("═══════════════════════════════════════\n");
+        sb.append("Subtotal: $").append(String.format("%.2f", getSubTotal())).append("\n");
+        sb.append("Shipping: $").append(String.format("%.2f", getShippingFees())).append("\n");
+        sb.append("Total: $").append(String.format("%.2f", getSubTotal() + getShippingFees()));
+
         return sb.toString();
     }
 }

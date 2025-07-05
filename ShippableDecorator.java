@@ -23,6 +23,7 @@ public class ShippableDecorator extends ProductDecorator implements Shippable {
 
     @Override
     public String toString() {
-        return super.toString() + " [Shippable: " + weight + "kg, shipping fee: $" + getShippingFee() + "]";
+        return super.toString() + " [🚚 Shippable: " + String.format("%.1f", weight) +
+                "kg, shipping fee: $" + String.format("%.2f", getShippingFee()) + "]";
     }
 }

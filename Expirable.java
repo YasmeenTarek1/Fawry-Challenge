@@ -1,9 +1,10 @@
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public interface Expirable {
-    LocalDate getExpiryDate();
+    LocalDateTime getExpiryDate();
 
     default boolean isExpired() {
-        return getExpiryDate().isBefore(LocalDate.now());
+        return getExpiryDate().isBefore(LocalDateTime.now());
     }
 }

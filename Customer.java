@@ -9,6 +9,7 @@ public class Customer {
     public Customer(Inventory inventory, double balance) {
         this.myCart = new Cart(inventory);
         this.balance = balance;
+        System.out.println("👤 Customer created with balance: $" + String.format("%.2f", balance));
     }
 
     public void checkout() throws BalanceNotSufficientException, ProductExpiredException, EmptyCartException {
@@ -30,12 +31,14 @@ public class Customer {
         // send shippable products to shipping service
         myCart.sendShippableProductsToShippingService();
 
+        // print checkout receipt
+        myCart.printCheckoutReceipt();
+
+        // deduct amount from balance
         balance -= paidAmount;
 
-        System.out.println("subTotal = " + subTotal);
-        System.out.println("shipping Fees = " + shippingFees);
-        System.out.println("paid Amount = " + paidAmount);
-        System.out.println("new Balance = " + balance);
+        System.out.println("\n✅ Checkout completed successfully!");
+        System.out.println("💰 Remaining balance: $" + String.format("%.2f", balance));
     }
 
     public Cart getMyCart() {

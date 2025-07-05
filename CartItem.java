@@ -32,6 +32,6 @@ public class CartItem {
 
     @Override
     public String toString() {
-        return quantity + " x " + productName + " @ " + unitPrice + " each = " + getSubTotal();
+        return quantity + "x " + productName + " @ $" + String.format("%.2f", unitPrice) + " each = $" + String.format("%.2f", getSubTotal());
     }
 }

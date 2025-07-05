@@ -2,6 +2,6 @@ package Exceptions;
 
 public class EmptyCartException extends Exception {
     public EmptyCartException() {
-        super("Cannot proceed to checkout. The cart is empty.");
+        super("❌ Checkout failed: Your cart is empty. Please add items before checkout.");
     }
 }
